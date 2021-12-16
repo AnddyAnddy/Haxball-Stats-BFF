@@ -81,9 +81,8 @@ async def send_error(ctx, desc, read_help=True):
     try:
         helper = f"Read !help {ctx.invoked_with}" * read_help
         desc = desc[desc.find(":") + 1:]
-        await ctx.author.send(embed=Embed(title="Error !", color=0x000000,
-                                          description=f"{str(desc)}\n{helper}"))
-        await ctx.message.delete(delay=1)
+        await ctx.send(embed=Embed(title="Error !", color=0x000000,
+                                   description=f"{str(desc)}\n{helper}"))
     except Exception:
         pass
 
@@ -120,7 +119,19 @@ async def parse(ctx):
 
 
 @BOT.command(pass_context=True)
-async def stat(ctx, player_name):
+async def stat(ctx, *player_name):
+    """Get the stat based of the name.
+
+
+    Hello I made a new bot so you can see your all times stats in reports-scrim
+
+    - !stat <haxball_nickname> is the only command for now
+
+    - It works weird with non ascii nicknames (emojis and accents and stuff)
+
+    - If you used alts, rip, i'll soon make a !merge command that will show stats of your alts
+    """
+    player_name = " ".join(player_name)
     player: dict[str, int] = get_player(player_name)
     desc = "```py\n"
     desc += f"{'name':<10} {'time':^8} {'goals':^8} {'assists':^8} {'saves':^8} {'cs':^8}\n"
