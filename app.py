@@ -131,7 +131,7 @@ async def stat(ctx, *player_name):
 
     - If you used alts, rip, i'll soon make a !merge command that will show stats of your alts
     """
-    player_name = " ".join(player_name)
+    player_name = " ".join(player_name).lower()
     player: dict[str, int] = get_player(player_name)
     desc = "```py\n"
     desc += f"{'name':<10} {'time':^8} {'goals':^8} {'assists':^8} {'saves':^8} {'cs':^8}\n"
