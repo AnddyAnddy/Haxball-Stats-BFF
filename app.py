@@ -102,7 +102,10 @@ async def parse(ctx):
     print("parsing")
     channel: discord.abc.Messageable = await BOT.fetch_channel(726932351241814117)
     async for message in channel.history(limit=1000):
-        embed = message.embeds[0]
+        try:
+            embed = message.embeds[0]
+        except IndexError:
+            continue
         full_path = os.path.join("bff/", embed.title.split("#")[-1] + ".json")
         if os.path.isfile(full_path):
             print(full_path + " already exists")
