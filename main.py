@@ -42,7 +42,7 @@ players_dict = {
 
 def load_data():
     datas = []
-    for file in glob.glob("res/*.json"):
+    for file in glob.glob("champions/*.json"):
         with open(file) as json_file:
             datas.append(json.load(json_file))
     return datas
@@ -61,6 +61,7 @@ def parse(data_list, players):
             for player_stat, offi_stat in matching_stats.items():
                 for half in ("half1", "half2"):
                     player.add(player_stat, plus_or_zero(data, half, offi_stat, name))
+
 
 
 if __name__ == '__main__':

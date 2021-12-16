@@ -36,7 +36,7 @@ var/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit parser.py / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -149,3 +149,4 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+*.json
