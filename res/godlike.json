@@ -1,0 +1,49 @@
+{
+  "name": "Godlike",
+  "half1": {
+    "score_team1": 3,
+    "score_team2": 2,
+    "time_played": {
+      "iliess": 7,
+      "blaaster": 7,
+      "anddy": 7,
+      "hassi": 7
+    },
+    "scorers": {
+      "hassi": 3
+    },
+    "assisters": {
+      "anddy": 2
+    },
+    "cs": {
+    },
+    "saves": {
+      "iliess": 3,
+      "blaaster": 1
+    }
+  },
+  "half2": {
+    "score_team1": 6,
+    "score_team2": 2,
+    "time_played": {
+      "iliess": 7,
+      "blaaster": 7,
+      "anddy": 7,
+      "hassi": 7
+    },
+    "scorers": {
+      "anddy": 3,
+      "hassi": 3
+    },
+    "assisters": {
+      "anddy": 3,
+      "hassi": 3
+    },
+    "cs": {
+    },
+    "saves": {
+      "iliess": 2,
+      "blaaster": 1
+    }
+  }
+}

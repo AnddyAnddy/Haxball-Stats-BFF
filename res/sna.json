@@ -1,0 +1,46 @@
+{
+  "name": "Seven Nation Army",
+  "half1": {
+    "score_team1": 1,
+    "score_team2": 1,
+    "time_played": {
+      "blaaster": 7,
+      "tintin": 7,
+      "hassi": 7,
+      "iliess": 7
+    },
+    "scorers": {
+      "iliess": 1
+    },
+    "assisters": {
+      "hassi": 1
+    },
+    "cs": {
+    },
+    "saves": {
+      "blaaster": 2,
+      "tintin": 2
+    }
+  },
+  "half2": {
+    "score_team1": 3,
+    "score_team2": 3,
+    "time_played": {
+      "blaaster": 7,
+      "tintin": 7,
+      "hassi": 7,
+      "iliess": 7
+    },
+    "scorers": {
+      "iliess": 1
+    },
+    "assisters": {
+      "hassi": 2
+    },
+    "cs": {
+    },
+    "saves": {
+      "hassi": 1
+    }
+  }
+}
