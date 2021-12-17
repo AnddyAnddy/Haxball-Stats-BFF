@@ -8,8 +8,8 @@ from discord.ext.commands import Bot
 from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 
-from src.parser import parse_text
-from src.players import update_stats, get_player
+from src.parser import parse_text, delete_non_4v4
+from src.players import update_stats, Server
 
 load_dotenv()
 
@@ -30,6 +30,7 @@ def get_prefix(client, message):  # first we define get_prefix
 
 BOT: Bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, intents=intents,
                         chunk_guilds_at_startup=False)
+server = Server()
 
 
 @BOT.command(pass_context=True)
@@ -99,7 +100,7 @@ async def send_global_error(ctx, desc):
 @BOT.command(pass_context=True, hidden=True)
 async def parse(ctx):
     print("parsing")
-    channel: discord.abc.Messageable = await BOT.fetch_channel(726932351241814117)
+    channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
     async for message in channel.history(limit=None):
         try:
             embed = message.embeds[0]
@@ -118,7 +119,11 @@ async def parse(ctx):
     await ctx.send("Finished parsing")
 
 
-@BOT.command(pass_context=True)
+def get_real_time(total_minutes):
+    return f"{total_minutes // 60}h{total_minutes % 60}m"
+
+
+@BOT.command(pass_context=True, aliases=["s", "stats"])
 async def stat(ctx, *player_name):
     """Get the stat based of the name.
 
@@ -132,13 +137,48 @@ async def stat(ctx, *player_name):
     - If you used alts, rip, i'll soon make a !merge command that will show stats of your alts
     """
     player_name = " ".join(player_name).lower()
-    player: dict[str, int] = get_player(player_name)
+    player: dict[str, int] = server.players.get_player(player_name)
     desc = "```py\n"
-    desc += f"{'name':<10} {'time':^8} {'goals':^8} {'assists':^8} {'saves':^8} {'cs':^8}\n"
-    p = player
-    desc += f"{player_name:<10} {p['time']:^8} {p['goals']:^8} {p['assists']:^8} {p['saves']:^8} {p['cs']:^8}\n"
+    desc += f'{"name":<15} {player_name:<20} {"stat / time":<10}\n'
+    total_minutes = player["time"]
+    desc += f'{"time":<15} {total_minutes:<20} {get_real_time(total_minutes):<10}\n'
+    for s in ('goals', 'assists', 'saves', 'cs', 'own goals'):
+        val = player[s]
+        ratio = val / total_minutes
+        desc += f'{s:<15} {val:<20} {ratio:<14.3f}\n'
+
     desc += "```"
     await ctx.send(embed=Embed(title=player_name, description=desc))
+
+
+@BOT.command(pass_context=True, aliases=["lb"])
+async def leaderboard(ctx, key, start_page=1):
+    """
+    """
+    try:
+        page = int(start_page)
+    except ValueError:
+        raise ValueError(f"Error : Page must be a positive number")
+    if page <= 0:
+        raise ValueError(f"Error : Page must be positive {page}")
+    sorted_players = server.sorted.sort_players_by(key)
+
+    i = 20 * (start_page - 1)
+    index = i
+    end = 20 * start_page
+    desc = '```\n'
+    while i < end and i < len(sorted_players) and index < len(sorted_players):
+        v = sorted_players[index]
+        i += 1
+        desc += f'{"0" if i <= 9 else ""}{i}) {v[0]:<20} {str(v[1]):>10}\n'
+
+        index += 1
+
+    desc += '```'
+    nb_pages = 1 + len(server.players.players) // 20
+    embed = Embed(title=f"{key} leaderboard", description=desc) \
+        .set_footer(text=f"[ {start_page} / {nb_pages} ]")
+    await ctx.send(embed=embed)
 
 
 @BOT.event
@@ -155,4 +195,5 @@ async def on_command_error(ctx, error):
 
 
 if __name__ == '__main__':
+    # delete_non_4v4()
     BOT.run(TOKEN)

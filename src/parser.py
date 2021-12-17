@@ -1,4 +1,6 @@
+import glob
 import json
+import os
 import re
 
 
@@ -28,3 +30,11 @@ def parse_text(full_path, txt: str):
 
     with open(full_path, "w+") as f:
         json.dump(res, f, indent=4)
+
+
+def delete_non_4v4():
+    for filename in glob.glob("bff/*.json"):
+        with open(filename, "r") as f:
+            game = json.load(f)
+        if len(game["time_played"]) < 6:
+            os.remove(filename)

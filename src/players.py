@@ -20,10 +20,6 @@ class Matching:
     }
 
 
-def create_player(players_db, player):
-    players_db[player] = {stat: 0 for stat in Matching.player_to_game}
-
-
 def update_stats(path_to_last_game):
     with open("players/players.json", "r") as db:
         players_db = json.load(db)
@@ -44,13 +40,56 @@ def update_stats(path_to_last_game):
         json.dump(players_db, db, indent=4)
 
 
-def get_player(player):
-    with open("players/players.json", "r") as db:
-        players_db = json.load(db)
-    try:
-        return players_db[player]
-    except KeyError:
-        raise ValueError("Error : " + player + " not in my database")
+class Players:
+
+    def __init__(self):
+        with open("players/players.json", "r") as db:
+            self.players: dict = json.load(db)
+
+    def get_player(self, player):
+        try:
+            return self.players[player]
+        except KeyError:
+            raise ValueError("Error : " + player + " not in my database")
+
+
+class Sorted:
+    valid_keys = {
+        "time": "time",
+        "goals": "goals",
+        "assists": "assists",
+        "og": "own goals",
+        "cs": "cs",
+        "saves": "saves",
+    }
+
+    def __init__(self, players: Players):
+        self.time = []
+        self.goals = []
+        self.assists = []
+        self.own_goals = []
+        self.cs = []
+        self.saves = []
+        self.build(players)
+
+    def sort_players_by(self, key):
+        try:
+            key = Sorted.valid_keys[key]
+        except KeyError:
+            raise ValueError(f"Error : You can not sort by this key `{key}`")
+        return getattr(self, key)
+
+    def build(self, players: Players):
+        for key in Sorted.valid_keys.values():
+            setattr(self, key,
+                    [(k, v[key]) for k, v in
+                     sorted(players.players.items(), reverse=True, key=lambda item: item[1][key])])
+
+
+class Server:
+    def __init__(self):
+        self.players: Players = Players()
+        self.sorted = Sorted(self.players)
 
 
 if __name__ == '__main__':
