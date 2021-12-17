@@ -153,7 +153,10 @@ async def stat(ctx, *player_name):
 
 @BOT.command(pass_context=True, aliases=["lb"])
 async def leaderboard(ctx, key, start_page=1):
-    """
+    """See the leaderboard of a specific stat.
+
+    Available stats: time, goals, assists, saves, cs, og
+    Page: the number of the page you want to show, 20 players per page
     """
     try:
         page = int(start_page)
