@@ -8,8 +8,8 @@ from discord.ext.commands import Bot
 from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 
-from src.parser import parse_text, delete_non_4v4
-from src.players import update_stats, Server
+from src.parser import parse_text, delete_non_4v4, reload_all_data
+from src.players import update_stats, Server, Updater
 
 load_dotenv()
 
@@ -30,7 +30,7 @@ def get_prefix(client, message):  # first we define get_prefix
 
 BOT: Bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, intents=intents,
                         chunk_guilds_at_startup=False)
-server = Server()
+server = None
 
 
 @BOT.command(pass_context=True)
@@ -120,7 +120,13 @@ async def parse(ctx):
 
 
 def get_real_time(total_minutes):
-    return f"{total_minutes // 60}h{total_minutes % 60}m"
+    hours = total_minutes // 60
+    mins = total_minutes % 60
+
+    hours = f"0{hours}" if hours < 10 else str(hours)
+    mins = f"0{mins}" if mins < 10 else str(mins)
+
+    return f"{hours:<4}h{mins:>3}m"
 
 
 @BOT.command(pass_context=True, aliases=["s", "stats"])
@@ -139,16 +145,44 @@ async def stat(ctx, *player_name):
     player_name = " ".join(player_name).lower()
     player: dict[str, int] = server.players.get_player(player_name)
     desc = "```py\n"
-    desc += f'{"name":<15} {player_name:<20} {"stat / time":<10}\n'
+    desc += f'{"name":<15} {player_name:<20} {"stat / time %":<10}\n'
     total_minutes = player["time"]
     desc += f'{"time":<15} {total_minutes:<20} {get_real_time(total_minutes):<10}\n'
     for s in ('goals', 'assists', 'saves', 'cs', 'own goals'):
         val = player[s]
         ratio = val / total_minutes
-        desc += f'{s:<15} {val:<20} {ratio:<14.3f}\n'
+        desc += f'{s:<15} {val:<20} {ratio * 100:<14.3f}\n'
 
     desc += "```"
     await ctx.send(embed=Embed(title=player_name, description=desc))
+
+
+def time_key(sorted_players, i, end, index):
+    desc = '```\n'
+    desc += f'pos {"name":<20} {"mins":>6} {"total":>10}\n\n'
+    while i < end and i < len(sorted_players) and index < len(sorted_players):
+        v = sorted_players[index]
+        i += 1
+        desc += f'{"0" if i <= 9 else ""}{i}) {v[0]:<20} {v[1]:>6} {get_real_time(v[1]):>10}\n'
+
+        index += 1
+
+    desc += '```'
+    return desc
+
+
+def basic_keys(sorted_players, i, end, index, key):
+    desc = '```\n'
+    desc += f'pos {"name":<20} {key:>10} {"time":>6} {"%":>10}\n\n'
+    while i < end and i < len(sorted_players) and index < len(sorted_players):
+        v = sorted_players[index]
+        i += 1
+        desc += f'{"0" if i <= 9 else ""}{i}) {v[0]:<20} {v[1]:>10} {v[2]:>6} {(v[1] / v[2]) * 100:>10.2f}\n'
+
+        index += 1
+
+    desc += '```'
+    return desc
 
 
 @BOT.command(pass_context=True, aliases=["lb"])
@@ -169,17 +203,52 @@ async def leaderboard(ctx, key, start_page=1):
     i = 20 * (start_page - 1)
     index = i
     end = 20 * start_page
-    desc = '```\n'
-    while i < end and i < len(sorted_players) and index < len(sorted_players):
-        v = sorted_players[index]
-        i += 1
-        desc += f'{"0" if i <= 9 else ""}{i}) {v[0]:<20} {str(v[1]):>10}\n'
-
-        index += 1
-
-    desc += '```'
+    if key == "time":
+        desc = time_key(sorted_players, i, end, index)
+    else:
+        desc = basic_keys(sorted_players, i, end, index, key)
     nb_pages = 1 + len(server.players.players) // 20
     embed = Embed(title=f"{key} leaderboard", description=desc) \
+        .set_footer(text=f"[ {start_page} / {nb_pages} ]")
+    await ctx.send(embed=embed)
+
+
+@BOT.command(pass_context=True, aliases=["r", "rlb"])
+async def ratio_leaderboard(ctx, key, start_page=1, min_time=0):
+    """See the ratio leaderboard of a specific stat.
+
+    Available stats: time, goals, assists, saves, cs, og
+    Page: the number of the page you want to show, 20 players per page
+    Min time: the minimum time you want players to have played in order to appear in the leaderboard
+    """
+    try:
+        page = int(start_page)
+    except ValueError:
+        raise ValueError(f"Error : Page must be a positive number")
+    try:
+        min_time = int(min_time)
+    except ValueError:
+        raise ValueError(f"Error : Min time must be a number")
+    if page <= 0:
+        raise ValueError(f"Error : Page must be positive {page}")
+
+    sorted_players = server.sorted.sort_players_by(key)
+
+    sorted_players = [p for p in sorted(sorted_players,
+                                        reverse=True,
+                                        key=lambda x: x[1] / x[2] if x[2] != 0 else x[1])
+                      if p[1] >= min_time
+                      ]
+
+    i = 20 * (start_page - 1)
+    index = i
+    end = 20 * start_page
+    if key == "time":
+        desc = time_key(sorted_players, i, end, index)
+    else:
+        desc = basic_keys(sorted_players, i, end, index, key)
+    nb_pages = 1 + len(server.players.players) // 20
+    embed = Embed(title=f"{key} ratio leaderboard with min time of {min_time}", description=desc) \
         .set_footer(text=f"[ {start_page} / {nb_pages} ]")
     await ctx.send(embed=embed)
 
@@ -198,5 +267,7 @@ async def on_command_error(ctx, error):
 
 
 if __name__ == '__main__':
-    # delete_non_4v4()
+    delete_non_4v4()
+    Updater().update_all()
+    server = Server()
     BOT.run(TOKEN)

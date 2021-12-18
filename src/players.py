@@ -1,3 +1,5 @@
+import datetime
+import glob
 import json
 
 
@@ -20,14 +22,34 @@ class Matching:
     }
 
 
+class Updater:
+    def __init__(self):
+        self.players_db = {}
+
+    def update_all(self):
+        print("start the update all at time: ", datetime.datetime.now())
+        json.dump({}, open("players/players.json", "w+"))
+        for filename in glob.glob("bff/*.json"):
+            with open(filename, "r") as f:
+                game: dict[str, dict[str, int]] = json.load(f)
+                for stat, players in game.items():
+                    convert_to_player_stat = Matching.game_to_player[stat]
+                    for player, n in players.items():
+                        if player not in self.players_db:
+                            self.players_db[player] = {stat: 0 for stat in Matching.player_to_game}
+                        self.players_db[player][convert_to_player_stat] += n
+
+        print("finished updating")
+        with open("players/players.json", "w+") as db:
+            json.dump(self.players_db, db, indent=4)
+        print("finished dumping", datetime.datetime.now())
+
+
 def update_stats(path_to_last_game):
     with open("players/players.json", "r") as db:
         players_db = json.load(db)
     with open(path_to_last_game, "r") as f:
         game: dict[str, dict[str, int]] = json.load(f)
-        # print(players_db)
-        # print(game)
-
         for stat, players in game.items():
             convert_to_player_stat = Matching.game_to_player[stat]
             for player, n in players.items():
@@ -36,6 +58,7 @@ def update_stats(path_to_last_game):
                 players_db[player][convert_to_player_stat] += n
 
         # print(players_db)
+
     with open("players/players.json", "w+") as db:
         json.dump(players_db, db, indent=4)
 
@@ -82,7 +105,7 @@ class Sorted:
     def build(self, players: Players):
         for key in Sorted.valid_keys.values():
             setattr(self, key,
-                    [(k, v[key]) for k, v in
+                    [(k, v[key], v["time"]) for k, v in
                      sorted(players.players.items(), reverse=True, key=lambda item: item[1][key])])
 
 

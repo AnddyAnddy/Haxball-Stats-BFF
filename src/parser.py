@@ -3,6 +3,8 @@ import json
 import os
 import re
 
+from src.players import update_stats
+
 
 def parse_text(full_path, txt: str):
     def split_last_space(s):
@@ -33,8 +35,17 @@ def parse_text(full_path, txt: str):
 
 
 def delete_non_4v4():
+    print("deleting 4v4s")
     for filename in glob.glob("bff/*.json"):
         with open(filename, "r") as f:
             game = json.load(f)
         if len(game["time_played"]) < 6:
             os.remove(filename)
+
+
+def reload_all_data():
+    print("updating stats")
+    json.dump({}, open("players/players.json", "w+"))
+    for filename in glob.glob("bff/*.json"):
+        update_stats(filename)
+    print("finished updating")
