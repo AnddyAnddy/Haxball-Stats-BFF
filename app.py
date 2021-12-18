@@ -267,7 +267,7 @@ async def on_command_error(ctx, error):
 
 
 if __name__ == '__main__':
-    delete_non_4v4()
-    Updater().update_all()
+    # delete_non_4v4()
+    # Updater().update_all()
     server = Server()
     BOT.run(TOKEN)
