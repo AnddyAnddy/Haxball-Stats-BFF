@@ -214,7 +214,7 @@ async def leaderboard(ctx, key, start_page=1):
 
 
 @BOT.command(pass_context=True, aliases=["r", "rlb"])
-async def ratio_leaderboard(ctx, key, start_page=1, min_time=0):
+async def ratio_leaderboard(ctx, key, min_time=0, start_page=1):
     """See the ratio leaderboard of a specific stat.
 
     Available stats: time, goals, assists, saves, cs, og
@@ -237,7 +237,7 @@ async def ratio_leaderboard(ctx, key, start_page=1, min_time=0):
     sorted_players = [p for p in sorted(sorted_players,
                                         reverse=True,
                                         key=lambda x: x[1] / x[2] if x[2] != 0 else x[1])
-                      if p[1] >= min_time
+                      if p[2] >= min_time
                       ]
 
     i = 20 * (start_page - 1)
