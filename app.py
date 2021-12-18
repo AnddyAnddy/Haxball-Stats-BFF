@@ -8,7 +8,7 @@ from discord.ext.commands import Bot
 from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 
-from src.parser import parse_text, delete_non_4v4, reload_all_data
+from src.parser import parse_text, delete_non_4v4
 from src.players import update_stats, Server, Updater
 
 load_dotenv()
@@ -177,7 +177,7 @@ def basic_keys(sorted_players, i, end, index, key):
     while i < end and i < len(sorted_players) and index < len(sorted_players):
         v = sorted_players[index]
         i += 1
-        desc += f'{"0" if i <= 9 else ""}{i}) {v[0]:<20} {v[1]:>10} {v[2]:>6} {(v[1] / v[2]) * 100:>10.2f}\n'
+        desc += f'{"0" if i <= 9 else ""}{i}) {v[0]:<20} {v[1]:>10} {v[2]:>6} {(v[1] / v[2] if v[2] != 0 else v[1]) * 100:>10.2f}\n'
 
         index += 1
 
