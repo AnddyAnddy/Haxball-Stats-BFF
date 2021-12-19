@@ -8,8 +8,9 @@ from discord.ext.commands import Bot
 from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 
-from src.parser import parse_text, delete_non_4v4
-from src.players import update_stats, Server, Updater
+from src.decorators import string_to, apply_predicate
+from src.parser import parse_text
+from src.players import update_stats, Server
 
 load_dotenv()
 
@@ -185,35 +186,37 @@ def basic_keys(sorted_players, i, end, index, key):
     return desc
 
 
+def embed_leaderboard(start_page, players, key):
+    i = 20 * (start_page - 1)
+    index = i
+    end = 20 * start_page
+    if key == "time":
+        desc = time_key(players, i, end, index)
+    else:
+        desc = basic_keys(players, i, end, index, key)
+    nb_pages = 1 + len(server.players.players) // 20
+    return Embed(title=f"{key} leaderboard", description=desc) \
+        .set_footer(text=f"[ {start_page} / {nb_pages} ]")
+
+
 @BOT.command(pass_context=True, aliases=["lb"])
+@string_to(int, (-1,))
+@apply_predicate(lambda x: x > 0, (-1,), "must be positive")
 async def leaderboard(ctx, key, start_page=1):
     """See the leaderboard of a specific stat.
 
     Available stats: time, goals, assists, saves, cs, og
     Page: the number of the page you want to show, 20 players per page
     """
-    try:
-        page = int(start_page)
-    except ValueError:
-        raise ValueError(f"Error : Page must be a positive number")
-    if page <= 0:
-        raise ValueError(f"Error : Page must be positive {page}")
     sorted_players = server.sorted.sort_players_by(key)
+    embed = embed_leaderboard(start_page, sorted_players, key)
 
-    i = 20 * (start_page - 1)
-    index = i
-    end = 20 * start_page
-    if key == "time":
-        desc = time_key(sorted_players, i, end, index)
-    else:
-        desc = basic_keys(sorted_players, i, end, index, key)
-    nb_pages = 1 + len(server.players.players) // 20
-    embed = Embed(title=f"{key} leaderboard", description=desc) \
-        .set_footer(text=f"[ {start_page} / {nb_pages} ]")
     await ctx.send(embed=embed)
 
 
 @BOT.command(pass_context=True, aliases=["r", "rlb"])
+@string_to(int, (-1, -2))
+@apply_predicate(lambda x: x >= 0, (-1, -2), "must be positive")
 async def ratio_leaderboard(ctx, key, min_time=0, start_page=1):
     """See the ratio leaderboard of a specific stat.
 
@@ -221,36 +224,16 @@ async def ratio_leaderboard(ctx, key, min_time=0, start_page=1):
     Page: the number of the page you want to show, 20 players per page
     Min time: the minimum time you want players to have played in order to appear in the leaderboard
     """
-    try:
-        page = int(start_page)
-    except ValueError:
-        raise ValueError(f"Error : Page must be a positive number")
-    try:
-        min_time = int(min_time)
-    except ValueError:
-        raise ValueError(f"Error : Min time must be a number")
-    if page <= 0:
-        raise ValueError(f"Error : Page must be positive {page}")
 
-    sorted_players = server.sorted.sort_players_by(key)
-
-    sorted_players = [p for p in sorted(sorted_players,
+    sorted_players = [p for p in sorted(server.sorted.sort_players_by(key),
                                         reverse=True,
                                         key=lambda x: x[1] / x[2] if x[2] != 0 else x[1])
                       if p[2] >= min_time
                       ]
+    embed = embed_leaderboard(start_page, sorted_players, key)
 
-    i = 20 * (start_page - 1)
-    index = i
-    end = 20 * start_page
-    if key == "time":
-        desc = time_key(sorted_players, i, end, index)
-    else:
-        desc = basic_keys(sorted_players, i, end, index, key)
-    nb_pages = 1 + len(server.players.players) // 20
-    embed = Embed(title=f"{key} ratio leaderboard with min time of {min_time}", description=desc) \
-        .set_footer(text=f"[ {start_page} / {nb_pages} ]")
     await ctx.send(embed=embed)
+
 
 
 @BOT.event
