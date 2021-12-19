@@ -75,6 +75,24 @@ class Players:
         except KeyError:
             raise ValueError("Error : " + player + " not in my database")
 
+    def add_player(self, player_name, stats):
+        if player_name in self.players:
+            raise ValueError(f"Error : Player {player_name} already in the database")
+        self.players[player_name] = stats
+        with open("players/players.json", "w+") as db:
+            json.dump(self.players, db, indent=4)
+
+    def delete_player(self, player_name):
+        try:
+            self.players.pop(player_name)
+        except KeyError:
+            raise ValueError(f"Error : Could not delete {player_name}, not in db")
+        with open("players/players.json", "w+") as db:
+            json.dump(self.players, db, indent=4)
+
+    def __contains__(self, item):
+        return item in self.players
+
 
 class Sorted:
     valid_keys = {

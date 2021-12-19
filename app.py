@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from src.decorators import string_to, apply_predicate
 from src.parser import parse_text
-from src.players import update_stats, Server
+from src.players import update_stats, Server, Matching
 
 load_dotenv()
 
@@ -135,16 +135,15 @@ async def stat(ctx, *player_name):
     """Get the stat based of the name.
 
 
-    Hello I made a new bot so you can see your all times stats in reports-scrim
+    Hello I made a new bot so you can see your all times stats in reports-scrim and reports-official
 
-    - !stat <haxball_nickname> is the only command for now
+    - !stat <haxball_nickname>
 
-    - It works weird with non ascii nicknames (emojis and accents and stuff)
+    - It works weird with non alphanumeric nicknames (emojis and dots an and stuff)
 
-    - If you used alts, rip, i'll soon make a !merge command that will show stats of your alts
     """
     player_name = " ".join(player_name).lower()
-    player: dict[str, int] = server.players.get_player(player_name)
+    player: dict[str] = server.players.get_player(player_name)
     desc = "```py\n"
     desc += f'{"name":<15} {player_name:<20} {"stat / time %":<10}\n'
     total_minutes = player["time"]
@@ -154,7 +153,14 @@ async def stat(ctx, *player_name):
         ratio = val / total_minutes
         desc += f'{s:<15} {val:<20} {ratio * 100:<14.3f}\n'
 
+    try:
+        alts = player["alts"]
+        str_alts = ", ".join([str(p) for p in alts])
+        desc += f'{"alts":<15} {str_alts}\n'
+    except KeyError:
+        desc += f'{"alts":<15} {"No alt found"}\n'
     desc += "```"
+
     await ctx.send(embed=Embed(title=player_name, description=desc))
 
 
@@ -234,6 +240,45 @@ async def ratio_leaderboard(ctx, key, min_time=0, start_page=1):
 
     await ctx.send(embed=embed)
 
+
+@BOT.command(pass_context=True, aliases=["m"])
+async def merge(ctx, *alts):
+    """Associate several nicknames with one player.
+
+    Exemple:
+        !merge anddy + nd + steely knives + rejuvenation
+
+    The associated nickname will be something like "* anddy"
+        (star first, then the first name you submitted)
+    This will not erase other alts from the leaderboard as you are all retarded and could fuck up the database
+
+    However you can ask for a nickname deletion in #merge-demands to not have yourself 50 times in the leaderboard
+    We will check your nicknames before deleting, if it's not yours, you can fuck yourself.
+    You must put "+" between every player
+    """
+    nicknames = " ".join(alts).split(" + ")
+    new_player_name = f"*{nicknames[0]}"
+    if new_player_name in server.players:
+        raise ValueError(f"Error : There is already a merged player called {new_player_name}")
+    players = [server.players.get_player(player) for player in nicknames]
+    stats = {s: 0 for s in Matching.player_to_game}
+    for p in players:
+        for name in stats:
+            stats[name] += p[name]
+    stats["alts"] = nicknames
+    server.players.add_player(new_player_name, stats)
+    await ctx.send(embed=Embed(description=f"Merged player of {nicknames} created called `{new_player_name}`"))
+
+
+@BOT.command(pass_context=True, aliases=["rm"])
+async def delete(ctx, player):
+    """Delete player from the database.
+
+    Only usable by Anddy."""
+    if not ctx.author.id == 339349743488729088:
+        raise ValueError("Error : You do not have the permission to use that command, only anddy can")
+    server.players.delete_player(player)
+    await ctx.send(embed=Embed(description=f"Delete player {player} from the database"))
 
 
 @BOT.event
