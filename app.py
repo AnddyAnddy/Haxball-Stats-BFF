@@ -267,6 +267,7 @@ async def merge(ctx, *alts):
             stats[name] += p[name]
     stats["alts"] = nicknames
     server.players.add_player(new_player_name, stats)
+    server.sorted.build(server.players)
     await ctx.send(embed=Embed(description=f"Merged player of {nicknames} created called `{new_player_name}`"))
 
 
@@ -278,6 +279,7 @@ async def delete(ctx, player):
     if not ctx.author.id == 339349743488729088:
         raise ValueError("Error : You do not have the permission to use that command, only anddy can")
     server.players.delete_player(player)
+    server.sorted.build(server.players)
     await ctx.send(embed=Embed(description=f"Delete player {player} from the database"))
 
 
