@@ -20,7 +20,10 @@ class Game:
     def parse(path, text: str):
         t = text.splitlines()
         t = [s[4:].lower().split(":** ") for s in t if s.startswith(">")]
-        t = [(x, *y.split(" ")) for x, y in t]
+        try:
+            t = [(x, *y.split(" ")) for x, y in t]
+        except ValueError:
+            return
         d = {}
         for name, *stats in t:
             if name in d:
