@@ -9,7 +9,7 @@ from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 
 from src.decorators import string_to, apply_predicate
-from src.parser import parse_text
+from src.parser import parse_text, Game
 from src.players import update_stats, Server, Matching
 
 load_dotenv()
@@ -99,24 +99,22 @@ async def send_global_error(ctx, desc):
 
 
 @BOT.command(pass_context=True, hidden=True)
-async def parse(ctx):
+async def parse2(ctx):
     print("parsing")
     channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
-    async for message in channel.history(limit=None):
+    async for message in channel.history(limit=10):
         try:
             embed = message.embeds[0]
         except IndexError:
             continue
-        full_path = os.path.join("bff/", embed.title.split("#")[-1] + ".json")
+        full_path = os.path.join("bff2/", embed.title.split("#")[-1] + ".json")
         if os.path.isfile(full_path):
             print(full_path + " already exists")
             continue
 
         d_embed = embed.to_dict()
         game = d_embed["fields"][0]["value"] + d_embed["fields"][1]["value"]
-        parse_text(full_path, game)
-        update_stats(full_path)
-
+        Game.parse(full_path, game)
     await ctx.send("Finished parsing")
 
 

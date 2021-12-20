@@ -6,6 +6,48 @@ import re
 from src.players import update_stats
 
 
+class Game:
+    stat_match = {
+        "m": "time_played",
+        "g": "scorers",
+        "cs": "cs",
+        "s": "saves",
+        "a": "assisters",
+        "og": "own goals"
+    }
+
+    @staticmethod
+    def parse(path, text: str):
+        t = text.splitlines()
+        t = [s[4:].lower().split(":** ") for s in t if s.startswith(">")]
+        t = [(x, *y.split(" ")) for x, y in t]
+        d = {}
+        for name, *stats in t:
+            if name in d:
+                d[name] += stats
+            else:
+                d[name] = stats
+        if len(d) <= 7:
+            return
+
+        game = {"time_played": {}, "scorers": {}, "assisters": {}, "cs": {}, "saves": {}, "own goals": {}}
+        for name, stats in d.items():
+            for stat in stats:
+                number_stat_name = re.findall(r"\d+|\w+", stat)
+                try:
+                    number, stat_name = int(number_stat_name[0]), Game.stat_match[number_stat_name[1]]
+                except KeyError:
+                    if "m" in number_stat_name[-1]:
+                        number, stat_name = int(number_stat_name[0]), Game.stat_match["m"]
+                    else:
+                        continue
+
+                game[stat_name][name] = number
+
+        with open(path, "w") as file:
+            json.dump(game, file, indent=4)
+
+
 def parse_text(full_path, txt: str):
     def split_last_space(s):
         i = s.rfind(" ")
