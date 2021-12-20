@@ -102,7 +102,7 @@ async def send_global_error(ctx, desc):
 async def parse2(ctx):
     print("parsing")
     channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
-    async for message in channel.history(limit=10):
+    async for message in channel.history(limit=None):
         try:
             embed = message.embeds[0]
         except IndexError:
