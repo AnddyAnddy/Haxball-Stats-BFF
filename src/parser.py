@@ -44,7 +44,7 @@ class Game:
 
                 game[stat_name][name] = number
 
-        with open(path, "w") as file:
+        with open(path, "w+") as file:
             json.dump(game, file, indent=4)
 
 
