@@ -107,7 +107,7 @@ async def parse2(ctx):
             embed = message.embeds[0]
         except IndexError:
             continue
-        full_path = os.path.join("bff2/", embed.title.split("#")[-1] + ".json")
+        full_path = os.path.join("bff2/", embed.footer.text + ".json")
         if os.path.isfile(full_path):
             print(full_path + " already exists")
             continue
