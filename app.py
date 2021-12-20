@@ -102,7 +102,7 @@ async def send_global_error(ctx, desc):
 async def parse2(ctx):
     print("parsing")
     channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
-    async for message in channel.history(limit=None):
+    async for message in channel.history(limit=None, oldest_first=True):
         try:
             embed = message.embeds[0]
         except IndexError:
@@ -115,6 +115,10 @@ async def parse2(ctx):
         d_embed = embed.to_dict()
         game = d_embed["fields"][0]["value"] + d_embed["fields"][1]["value"]
         Game.parse(full_path, game)
+        try:
+            Game.parse(full_path, game)
+        except Exception:
+            pass
     await ctx.send("Finished parsing")
 
 
