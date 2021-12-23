@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from src.decorators import string_to, apply_predicate
 from src.parser import Game
-from src.players import Server, Matching
+from src.players import Server, Matching, Updater
 
 load_dotenv()
 
@@ -347,7 +347,6 @@ async def on_command_error(ctx, error):
 
 
 if __name__ == '__main__':
-    # delete_non_4v4()
-    # Updater().update_all()
+    Updater().update_all()
     server = Server()
     BOT.run(TOKEN)
