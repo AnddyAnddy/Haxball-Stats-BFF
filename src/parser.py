@@ -20,6 +20,10 @@ class Game:
     def parse(path, text: str):
         t = text.splitlines()
         t = [s[4:].lower().split(":** ") for s in t if s.startswith(">")]
+        for elem in t:
+            if elem[0].startswith("[og] "):
+                elem[0] = elem[0].replace("[og] ", "")
+                elem[1] = elem[1].replace("g", "og")
         try:
             t = [(x, *y.split(" ")) for x, y in t]
         except ValueError:

@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 
@@ -123,6 +124,14 @@ async def download_raw_data(ctx):
         except Exception:
             pass
     await ctx.send("Finished parsing")
+
+
+@BOT.command(pass_context=True, hidden=True)
+async def parse_raw(ctx):
+    await ctx.send("Starting parsing")
+    for filename in glob.glob("raw/*.json"):
+        with open(filename, "r") as file:
+            Game.parse(filename, file.read())
 
 
 def get_real_time(total_minutes):
