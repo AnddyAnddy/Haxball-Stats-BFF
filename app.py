@@ -115,7 +115,6 @@ async def parse2(ctx):
 
         d_embed = embed.to_dict()
         game = d_embed["fields"][0]["value"] + d_embed["fields"][1]["value"]
-        Game.parse(full_path, game)
         try:
             Game.parse(full_path, game)
         except Exception:
@@ -153,7 +152,7 @@ async def stat(ctx, *player_name):
     desc += f'{"time":<15} {total_minutes:<20} {get_real_time(total_minutes):<10}\n'
     for s in ('goals', 'assists', 'saves', 'cs', 'own goals'):
         val = player[s]
-        ratio = val / total_minutes
+        ratio = val / total_minutes if total_minutes != 0 else val
         desc += f'{s:<15} {val:<20} {ratio * 100:<14.3f}\n'
 
     try:
@@ -259,7 +258,7 @@ async def merge(ctx, *alts):
     We will check your nicknames before deleting, if it's not yours, you can fuck yourself.
     You must put "+" between every player
     """
-    nicknames = " ".join(alts).split(" + ")
+    nicknames = " ".join(alts).lower().split(" + ")
     new_player_name = f"*{nicknames[0]}"
     if new_player_name in server.players:
         raise ValueError(f"Error : There is already a merged player called {new_player_name}")
@@ -274,6 +273,16 @@ async def merge(ctx, *alts):
     await ctx.send(embed=Embed(description=f"Merged player of {nicknames} created called `{new_player_name}`"))
 
 
+@BOT.command(pass_context=True, aliases=["global"])
+async def global_stats(ctx):
+    stats = {s: 0 for s in Matching.player_to_game}
+    for pname, p in server.players.players.items():
+        if pname.startswith("*"):
+            continue
+        for name in stats:
+            stats[name] += p[name]
+    print(stats)
+
 @BOT.command(pass_context=True, aliases=["rm"])
 async def delete(ctx, player):
     """Delete player from the database.
@@ -282,6 +291,18 @@ async def delete(ctx, player):
     if not ctx.author.id == 339349743488729088:
         raise ValueError("Error : You do not have the permission to use that command, only anddy can")
     server.players.delete_player(player)
+    server.sorted.build(server.players)
+    await ctx.send(embed=Embed(description=f"Delete player {player} from the database"))
+
+
+@BOT.command(pass_context=True, aliases=["rmalts"])
+async def delete_alts(ctx, player):
+    """Delete alts of player from the database.
+
+    Only usable by Anddy."""
+    if not ctx.author.id == 339349743488729088:
+        raise ValueError("Error : You do not have the permission to use that command, only anddy can")
+    server.players.delete_players_alt(player)
     server.sorted.build(server.players)
     await ctx.send(embed=Embed(description=f"Delete player {player} from the database"))
 
