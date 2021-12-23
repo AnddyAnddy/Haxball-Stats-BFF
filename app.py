@@ -108,7 +108,7 @@ async def parse2(ctx):
         except IndexError:
             continue
         filename = embed.footer.text.replace("/", "")
-        full_path = os.path.join("bff2/", filename + ".json")
+        full_path = os.path.join("raw/", filename + ".json")
         if os.path.isfile(full_path):
             print(full_path + " already exists")
             continue
@@ -116,7 +116,9 @@ async def parse2(ctx):
         d_embed = embed.to_dict()
         game = d_embed["fields"][0]["value"] + d_embed["fields"][1]["value"]
         try:
-            Game.parse(full_path, game)
+            with open(full_path, "w+") as raw:
+                raw.write(game)
+            # Game.parse(full_path, game)
         except Exception:
             pass
     await ctx.send("Finished parsing")
