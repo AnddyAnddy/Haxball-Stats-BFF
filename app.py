@@ -99,9 +99,10 @@ async def send_global_error(ctx, desc):
 
 
 @BOT.command(pass_context=True, hidden=True)
-async def parse2(ctx):
-    print("parsing")
-    channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
+async def download_raw_data(ctx):
+    print("getting raw data")
+    # channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
+    channel: discord.abc.Messageable = await BOT.fetch_channel(726932351241814117)
     async for message in channel.history(limit=None, oldest_first=True):
         try:
             embed = message.embeds[0]
