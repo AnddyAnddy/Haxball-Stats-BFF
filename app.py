@@ -128,12 +128,12 @@ async def download_channel(ctx, channel_id):
 @BOT.command(pass_context=True, hidden=True)
 async def download_raw_data(ctx):
     print("getting raw data")
-    await ctx.send("Report scrim: ", datetime.now())
+    await ctx.send(f"Report scrim: {datetime.now()}")
     await download_channel(ctx, 726932424172371968)
-    await ctx.send("Report scrim finished at:: ", datetime.now())
-    await ctx.send("Report offi: ", datetime.now())
+    await ctx.send(f"Report scrim finished at: {datetime.now()}")
+    await ctx.send(f"Report offi: {datetime.now()}")
     await download_channel(ctx, 726932351241814117)
-    await ctx.send("Report offi: ", datetime.now())
+    await ctx.send(f"Report offi: {datetime.now()}")
     await ctx.send("Finished parsing")
 
 
