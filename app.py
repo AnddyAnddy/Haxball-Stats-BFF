@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+from datetime import datetime
 
 import discord
 from discord import Embed
@@ -99,11 +100,9 @@ async def send_global_error(ctx, desc):
         pass
 
 
-@BOT.command(pass_context=True, hidden=True)
-async def download_raw_data(ctx):
-    print("getting raw data")
-    # channel: discord.abc.Messageable = await BOT.fetch_channel(726932424172371968)
-    channel: discord.abc.Messageable = await BOT.fetch_channel(726932351241814117)
+async def download_channel(ctx, channel_id):
+    channel: discord.abc.Messageable = await BOT.fetch_channel(channel_id)
+
     async for message in channel.history(limit=None, oldest_first=True):
         try:
             embed = message.embeds[0]
@@ -127,13 +126,25 @@ async def download_raw_data(ctx):
 
 
 @BOT.command(pass_context=True, hidden=True)
+async def download_raw_data(ctx):
+    print("getting raw data")
+    await ctx.send("Report scrim: ", datetime.now())
+    await download_channel(ctx, 726932424172371968)
+    await ctx.send("Report scrim finished at:: ", datetime.now())
+    await ctx.send("Report offi: ", datetime.now())
+    await download_channel(ctx, 726932351241814117)
+    await ctx.send("Report offi: ", datetime.now())
+    await ctx.send("Finished parsing")
+
+
+@BOT.command(pass_context=True, hidden=True)
 async def parse_raw(ctx):
     await ctx.send("Starting parsing")
     for filename in glob.glob("raw/*.txt"):
         with open(filename, "r") as file:
             filename = filename.replace("raw", "bff2").replace("txt", "json")
             Game.parse(filename, file.read())
-    await ctx.send("Finished parsing")
+    await ctx.send("Finished converting")
 
 
 def get_real_time(total_minutes):
