@@ -10,8 +10,8 @@ from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 
 from src.decorators import string_to, apply_predicate
-from src.parser import parse_text, Game
-from src.players import update_stats, Server, Matching
+from src.parser import Game
+from src.players import Server, Matching
 
 load_dotenv()
 
@@ -132,6 +132,7 @@ async def parse_raw(ctx):
     for filename in glob.glob("raw/*.json"):
         with open(filename, "r") as file:
             Game.parse(filename, file.read())
+    await ctx.send("Finished parsing")
 
 
 def get_real_time(total_minutes):
@@ -294,6 +295,7 @@ async def global_stats(ctx):
         for name in stats:
             stats[name] += p[name]
     print(stats)
+
 
 @BOT.command(pass_context=True, aliases=["rm"])
 async def delete(ctx, player):
