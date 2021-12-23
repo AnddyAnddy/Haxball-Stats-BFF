@@ -110,7 +110,7 @@ async def download_raw_data(ctx):
         except IndexError:
             continue
         filename = embed.footer.text.replace("/", "")
-        full_path = os.path.join("raw/", filename + ".json")
+        full_path = os.path.join("raw/", filename + ".txt")
         if os.path.isfile(full_path):
             print(full_path + " already exists")
             continue
@@ -129,8 +129,9 @@ async def download_raw_data(ctx):
 @BOT.command(pass_context=True, hidden=True)
 async def parse_raw(ctx):
     await ctx.send("Starting parsing")
-    for filename in glob.glob("raw/*.json"):
+    for filename in glob.glob("raw/*.txt"):
         with open(filename, "r") as file:
+            filename = filename.replace("raw", "bff2").replace("txt", "json")
             Game.parse(filename, file.read())
     await ctx.send("Finished parsing")
 
